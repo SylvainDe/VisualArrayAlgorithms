@@ -1,0 +1,372 @@
+<html>
+<head>
+<style>
+td			{ border: 1px solid black; width:20px; }
+td.swapped	{ background-color:yellow; }
+td.index	{ background-color:pink; }
+td.sorted	{ background-color:gray; }
+td.checked	{ background-color:red; }
+td.found	{ background-color:green; }
+td.pivot	{ background-color:blue; }
+td.pivotChosen{ background-color:purple; }
+td.limit    { background-color:brown; }
+</style>
+</head>
+<body>
+<button type="button" onClick="a.display()">Display</button>
+<button type="button" onClick="a.clean()">Clean</button>
+<br/>
+<button type="button" onClick="a.addElement(document.getElementById('addedValue').value)">Add element</button>
+<input type="text" id="addedValue" name="addedValue" value="0" size="2">
+<br/>
+<button type="button" onClick="a.shuffle()">Shuffle</button>
+<br/>
+<button type="button" onClick="a.bubbleSort()">Bubble Sort</button>
+<button type="button" onClick="a.insertionSort()">Insertion Sort</button>
+<button type="button" onClick="a.selectionSort()">Selection Sort</button>
+<button type="button" onClick="a.quicksort()">Quicksort</button>
+<br/>
+<button type="button" onClick="document.getElementById('searchValueRet').value=a.linearSearch(document.getElementById('searchValue').value)">Linear Search</button>
+<button type="button" onClick="document.getElementById('searchValueRet').value=a.binarySearch(document.getElementById('searchValue').value, -1)">Binary Search (first)</button>
+<button type="button" onClick="document.getElementById('searchValueRet').value=a.binarySearch(document.getElementById('searchValue').value,  1)">Binary Search (last)</button>
+<button type="button" onClick="document.getElementById('searchValueRet').value=a.binarySearch(document.getElementById('searchValue').value,  0)">Binary Search (any)</button>
+<input type="text" id="searchValue" name="searchValue" value="0" size="2">
+<input type="text" id="searchValueRet" name="searchValueRet" value="0" size="2">
+<br/>
+<button type="button" onClick="document.getElementById('sortedRet').value=a.isSorted(); a.display()">Sorted ?</button>
+<input type="text" id="sortedRet" name="sortedRet" value="0" size="2">
+<br/>
+<button type="button" onClick="a.testSearch()">Test searches</button>
+<table id='display'>
+<thead id='index'>
+</thead>
+<tbody id='logs'>
+</tbody>
+</table>
+<script>
+var a = {
+	val:	[23,11,32,40,25,83,47,12,62,14,54,51],
+	//val:    [25,3,6,3,52,12,76,65,34,29,6,8,24,21,23,5,6,3,2,2,4,62,10,30,32,12,98,7,1,1,2,3,4,7,8,34,52,12,76,65,34,29,42,9,2,6,7],
+	//val: 	[58, 22, 71, 28, 11, 14, 46, 56, 36, 12], 
+	//val:    [3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+	style : [],
+	reset_style: function() {
+		for (var i = 0; i < a.val.length; i++) {
+			a.style[i] = ''
+		}
+	},
+	displayIndex: function() {
+		a.cleanElement(document.getElementById('index'))
+		var row = document.getElementById('index').insertRow(0)
+		for (var i = 0; i < a.val.length; i++) {
+			var cell = row.insertCell(-1)
+			cell.appendChild(document.createTextNode(i))
+			cell.className = 'index'
+		}
+	},
+	display: function() {
+		a.displayIndex()
+		var row = document.getElementById('logs').insertRow(0)
+		for (var i = 0; i < a.val.length; i++) {
+			var cell = row.insertCell(-1)
+			cell.appendChild(document.createTextNode(a.val[i]))
+			cell.className = a.style[i]
+		}
+		a.reset_style()
+	},
+	clean: function() {
+		a.cleanElement(document.getElementById('logs'))
+		a.cleanElement(document.getElementById('index'))
+		a.display()
+	},
+	cleanElement: function(element) {
+		while (element.firstChild)
+			element.removeChild(element.firstChild)
+	},
+	addElement: function(k) {
+		a.val.push(a.getDefaultValue(k,0))
+		a.reset_style()
+		a.display()
+	},
+	cmp: function(i,v) {
+		a.assertInRange(i)
+		var x = a.val[i]
+		a.style[i] = 'checked'
+		var ret = (x < v) ? -1 : (x > v) ?  1 : 0
+		//console.log("%s <> %s : %s", a.valAsString(i), v, ret)
+		return ret
+	},
+	smaller: function(i,j) {
+		a.assertInRange(i)
+		a.assertInRange(j)
+		return a.val[i] < a.val[j]
+	},
+	found: function(i) {
+		a.style[i] = 'found'
+		a.display()
+		return i
+	},
+	linearSearch: function(k) {
+		for (var i = 0; i < a.val.length; i++) {
+			if (a.cmp(i, k) == 0) return a.found(i)
+		}
+		return -1
+	},
+	binarySearch: function(k, occurence) {
+		occurence = a.getDefaultValue(occurence, 0)
+		var min = 0
+		var max = a.val.length-1
+		while (min <= max)
+		{
+			a.assertIsSorted(min, max+1)
+			var range = max-min
+			var midf = min + (range / 2)
+			var mid = (occurence > 0) ? Math.ceil(midf) : Math.floor(midf)
+			var cmp = a.cmp(mid,k)
+			if      (cmp < 0) min = mid+1
+			else if (cmp > 0) max = mid-1
+			else if (occurence == 0 || min==max) return a.found(mid)
+			else if (occurence < 0) max = mid
+			else                    min = mid
+			a.assert(max-min < range, "Range did not get smaller")
+			a.display()
+		}
+		return -1
+	},
+	testSearch: function() {
+		var prev = a.val[0]
+		var prevBLast = undefined
+		a.assert(a.binarySearch(a.val[0] - 1) == -1, "Binary search test failed on smallest value")
+		a.assert(a.binarySearch(a.val[0], -1) == 0,  "First occurence of first value")
+		for (var i = 0; i < a.val.length; i++) {
+			var v = a.val[i]
+			var ls     = a.linearSearch(v)
+			var bAny   = a.binarySearch(v,  0)
+			var bFirst = a.binarySearch(v, -1)
+			var bLast  = a.binarySearch(v,  1)
+			a.assert(0 == a.cmp(ls,    v), "Linear search test failed on any value to be found ", i)
+			a.assert(0 == a.cmp(bAny,  v), "Binary search test failed on any value to be found ", i)
+			a.assert(0 == a.cmp(bFirst,v), "Binary search test failed on first value to be found ", i)
+			a.assert(0 == a.cmp(bLast, v), "Binary search test failed on last value to be found ", i)
+			a.assert(ls == bFirst && bFirst <= bAny && bFirst <= i && bAny <= bLast && i <= bLast, "Order of the values found is not right")
+
+			if (prev < v) {
+				a.assert(bFirst    == i,   "Binary search test failed - not first value")
+				a.assert(prevBLast == i-1, "Binary search test failed - not last value")
+				var mid = prev + ((v - prev) / 2)
+				a.assert(a.binarySearch(mid) == -1, "Binary search test failed on intermediate value")	
+				prev = v
+			} else {
+				a.assert(bFirst < bLast, "Strict order of the values found is not right")
+			}
+			prevBLast = bLast				
+		}
+		a.assert(a.binarySearch(prev, +1) == i-1, "Last occurence of last value")
+		a.assert(a.binarySearch(prev + 1) == -1,  "Binary search test failed on biggest value")
+	},
+	swap: function(i,j) {
+		a.assertInRange(i)
+		a.assertInRange(j)
+		a.nbSwap += 1
+		var temp = a.val[i]
+		a.val[i] = a.val[j]
+		a.val[j] = temp
+		a.style[i] = a.style[j] = 'swapped'
+		a.display()
+	},
+	valAsString: function(i) {
+		return "a[" + i + "] = " + (a.inRange(i) ? a.val[i] : "Out of range")
+	},
+	selectionSort: function() {
+		for (var i = 0; i < a.val.length; i++) {
+			a.assertIsSorted(0,i)
+			a.assertIsPartitioned(i)
+			a.swap(i, a.min(i))
+			a.assertIsSorted(0,i+1)
+			a.assertIsPartitioned(i+1)
+		}
+		a.assertIsSorted()
+		a.display()
+	},
+	insertionSort: function() {
+		for (var i = 0; i < a.val.length; i++) {
+			a.assertIsSorted(0,i)
+			for (var j = i; j>0 && a.smaller(j,j-1); j--) {
+				a.swap(j,j-1)
+			}
+			a.assertIsSorted(0,i+1)
+		}
+		a.assertIsSorted()
+		a.display()
+	},
+	bubbleSort: function() {
+		for (var n = a.val.length; n>0;) {
+			a.assertIsSorted(n)
+			var newn = 0
+			for (var i=1; i<n; i++) {
+				if (a.smaller(i,i-1)) {
+					a.swap(i,i-1)
+					newn=i
+				}
+			}
+			n = newn
+			a.assertIsSorted(n)
+		}
+		a.assertIsSorted()
+		a.display()
+	},
+	findPivot: function(beg, end) {
+		var piv = beg // TO BE IMPROVED
+		//return Math.floor(beg + ((end-beg) / 2))
+		console.log("Pivot chosen for [%s-%s[ is %s",beg,end,a.valAsString(piv))
+		return piv
+	},
+	partition: function(beg, end) {
+		console.log("Partition on %s-%s", beg, end)
+		var piv = a.findPivot(beg, end)
+		a.style[beg] = a.style[end-1]='limit'
+		a.style[piv]='pivotChosen'
+		a.display()
+		a.style[beg] = a.style[end-1]='limit'
+		a.style[beg]='pivotChosen'
+		a.swap(beg,piv)
+		var i = beg-1
+		var j = end
+		while (true) {
+			while (a.smaller(++i,beg)) {
+				if (i==end-1) break
+			}
+			while (a.smaller(beg, --j)) {
+				if (j==beg) break
+			}
+			if (i >= j) break
+			a.swap(i,j)
+		}
+		a.swap(beg,j)
+		a.assertIsPartitioned(j, beg, end)
+		a.display()
+		console.log("Partition on %s-%s, returning %s", beg, end, a.valAsString(j))
+		alert("PAUSE")
+		return j
+	},
+	quicksort: function() {
+		alert("I am not convinced with this implementation")
+		a.quicksort2(0, a.val.length)
+		a.display()
+	},
+	quicksort2: function(beg, end) {
+		console.log("Quicksort on %s-%s", beg, end)
+		if (end <= beg) return
+		var j = a.partition(beg, end)
+		a.quicksort2    (beg, j)
+		a.assertIsSorted(beg, j+1)
+		a.quicksort2    (j+1, end)
+		a.assertIsSorted(j,   end)
+	},
+	mergeSort: function() {
+		a.mergeSortWithLimits(0, a.val.length)
+	},
+	mergeSortWithLimits: function(beg, end) {
+		if (beg>=end) return
+		var mid = (beg+end)/2
+		
+		// TODO
+	},
+	merge: function(lo, mid, hi) {
+		// TODO
+	},
+	shuffle: function() {
+		for (var i = 0; i < a.val.length; i++) {
+			var max = i
+			var rand = Math.floor(Math.random() * (max + 1))
+			a.swap(i,rand)
+		}
+	},
+	getDefaultValue: function(val, def) {
+		return (typeof(val)==='undefined') ? def : val
+	},
+	getDefaultBeg: function(beg) {
+		return a.getDefaultValue(beg, 0)
+	},
+	getDefaultEnd: function(end) {
+		return a.getDefaultValue(end, a.val.length)
+	},
+	assert: function(cond, msg) {
+		if (!cond) {
+			console.error(msg)
+			alert(msg)
+			throw msg
+		}
+	},
+	min: function(beg, end) {
+		beg = a.getDefaultBeg(beg)
+		end = a.getDefaultEnd(end)
+		//console.info("Starting in min(%s,%s)",beg,end)		
+		min_i = beg
+		for (var i = beg+1; i < end; i++) {
+			if (a.smaller(i, min_i)) {
+				min_i = i
+			}
+		}
+		//console.info("Ending min(%s,%s) -> %s",beg,end, a.valAsString(min_i))
+		return min_i
+	},
+	max: function(beg, end) {
+		beg = a.getDefaultBeg(beg)
+		end = a.getDefaultEnd(end)
+		//console.info("Starting in max(%s,%s)",beg,end)
+		max_i = beg
+		for (var i = beg+1; i < end; i++) {
+			if (a.smaller(max_i, i)) {
+				max_i = i
+			}
+		}
+		//console.info("Ending max(%s,%s) -> %s",beg,end, a.valAsString(max_i))
+		return max_i	
+	},
+	isSorted: function(beg, end) {
+		//console.info("Starting in isSorted(%s,%s)",beg,end)
+		for (var i = beg+1; i < end; i++) {
+			if (a.smaller(i, i-1)) {
+				//console.info("Ending isSorted(%s,%s) -> %s because %s and %s",beg,end,false,a.valAsString(i-1),a.valAsString(i))
+				return false
+			}
+		}
+		//console.info("Ending isSorted(%s,%s) -> %s",beg,end, true)
+		return true
+	},
+	assertIsSorted: function(beg, end) {
+		beg = a.getDefaultBeg(beg)
+		end = a.getDefaultEnd(end)
+		a.assert(a.isSorted(beg, end), "Array is not sorted in range (" + beg + "-" + end + ")")
+		for (var i=beg; i<end; i++) a.style[i] = 'sorted'
+	},
+	isPartitioned: function(i, beg, end) {
+		return (i==beg) || (i==end) || !a.smaller(a.min(i,end), a.max(beg,i))		
+	},
+	assertIsPartitioned: function(i,beg,end) {
+		beg = a.getDefaultBeg(beg)
+		end = a.getDefaultEnd(end)
+		a.assert(a.isPartitioned(i, beg, end), "Array is not partitioned")
+		a.style[beg] = a.style[end-1] = 'limit'
+		a.style[i]='pivot'
+	},
+	inRange: function(i, beg, end) {
+		beg = a.getDefaultBeg(beg)
+		end = a.getDefaultEnd(end)
+		return (beg <=i) && (i<end)
+	},
+	assertInRange: function(i, beg, end) {
+		beg = a.getDefaultBeg(beg)
+		end = a.getDefaultEnd(end)
+		a.assert(a.inRange(i, beg, end), "Value " + i + " is not in range [" + beg + "-" + end + "[")
+	}
+}
+a.displayIndex()
+a.display()
+//a.selectionSort()
+//a.display()
+//a.clean()
+</script>
+</body>
+<html>
