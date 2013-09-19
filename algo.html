@@ -46,8 +46,8 @@ td.limit    { background-color:brown; }
 </table>
 <script>
 var a = {
-	val:	[23,11,32,40,25,83,47,12,62,14,54,51],
-	//val:    [25,3,6,3,52,12,76,65,34,29,6,8,24,21,23,5,6,3,2,2,4,62,10,30,32,12,98,7,1,1,2,3,4,7,8,34,52,12,76,65,34,29,42,9,2,6,7],
+	//val:	[23,11,32,40,25,83,47,12,62,14,54,51],
+	val:    [25,3,6,3,52,12,76,65,34,29,6,8,24,21,23,5,6,3,2,2,4,62,10,30,32,12,98,7,1,1,2,3,4,7,8,34,52,12,76,65,34,29,42,9,2,6,7],
 	//val: 	[58, 22, 71, 28, 11, 14, 46, 56, 36, 12], 
 	//val:    [3,3,3,3,3,3,3,3,3,3,3,3,3,3],
     style : [],
@@ -76,7 +76,10 @@ var a = {
 			cell.className = a.style[i]
 		}
 		a.reset_display_info()
-	},
+    },
+    addText: function(s) {
+        a.text+=s
+    },
     clean: function() {
         a.text = 'Cleaned. '
 		a.cleanElement(document.getElementById('logs'))
@@ -106,7 +109,8 @@ var a = {
 		return a.val[i] < a.val[j]
 	},
 	found: function(i) {
-		a.style[i] = 'found'
+        a.style[i] = 'found'
+        a.addText("Found " + a.valAsString(i) + ". ")
 		a.display()
 		return i
 	},
@@ -120,18 +124,18 @@ var a = {
 		occurence = a.getDefaultValue(occurence, 0)
 		var min = 0
 		var max = a.val.length-1
+        a.assertIsSorted(min, max+1)
 		while (min <= max)
 		{
-			a.assertIsSorted(min, max+1)
 			var range = max-min
 			var midf = min + (range / 2)
 			var mid = (occurence > 0) ? Math.ceil(midf) : Math.floor(midf)
 			var cmp = a.cmp(mid,k)
-			if      (cmp < 0) min = mid+1
-			else if (cmp > 0) max = mid-1
+            if      (cmp < 0) { min = mid+1; a.addText("Value must of on the right of " + a.valAsString(mid) + ". ") }
+            else if (cmp > 0) { max = mid-1; a.addText("Value must of on the left of "  + a.valAsString(mid) + ". ") }
 			else if (occurence == 0 || min==max) return a.found(mid)
-			else if (occurence < 0) max = mid
-			else                    min = mid
+            else if (occurence < 0) { max = mid; a.addText("Value found at " + a.valAsString(mid) + " but might not be the first. ") } 
+			else                    { min = mid; a.addText("Value found at " + a.valAsString(mid) + " but might not be the last. ")  } 
 			a.assert(max-min < range, "Range did not get smaller")
 			a.display()
 		}
@@ -176,14 +180,14 @@ var a = {
 		a.val[i] = a.val[j]
 		a.val[j] = temp
         a.style[i] = a.style[j] = 'swapped'
-        a.text += "Swapping " + a.valAsString(i) + " and " + a.valAsString(j) + ". "
+        a.addText("Swapping " + a.valAsString(i) + " and " + a.valAsString(j) + ". ")
 		a.display()
 	},
 	valAsString: function(i) {
 		return "a[" + i + "] = " + (a.inRange(i) ? a.val[i] : "Out of range")
 	},
     selectionSort: function() {
-        a.text += "Starting in selectionSort(). "
+        a.addText("Starting in selectionSort(). ")
 		for (var i = 0; i < a.val.length; i++) {
 			a.assertIsSorted(0,i)
 			a.assertIsPartitioned(i)
@@ -192,7 +196,7 @@ var a = {
             a.assertIsPartitioned(i+1)
             a.display()
 		}
-        a.text += "selectionSort() completed. "
+        a.addText("selectionSort() completed. ")
 		a.assertIsSorted()
 		a.display()
 	},
@@ -203,10 +207,10 @@ var a = {
 				a.swap(j,j-1)
 			}
             a.assertIsSorted(0,i+1)
-            a.text += "insertionSort: elements from " + 0 + " to " + i + " are sorted. "
+            a.addText("insertionSort: elements from " + 0 + " to " + i + " are sorted. ")
             a.display()
 		}
-        a.text += "insertionSort() completed. "
+        a.addText("insertionSort() completed. ")
 		a.assertIsSorted()
 		a.display()
 	},
@@ -222,10 +226,10 @@ var a = {
 			}
 			n = newn
 			a.assertIsSorted(n)
-            a.text += "bubbleSort: elements from " + n + " are sorted. "
+            a.addText("bubbleSort: elements from " + n + " are sorted. ")
             a.display()
 		}
-        a.text += "bubbleSort() completed. "
+        a.addText("bubbleSort() completed. ")
 		a.assertIsSorted()
 		a.display()
 	},
@@ -268,7 +272,7 @@ var a = {
 		a.display()
 	},
 	quicksort2: function(beg, end) {
-		a.text += "Quicksort started on " + beg + "-" + end + ". " 
+		a.addText("Quicksort started on " + beg + "-" + end + ". ")
 		if (end <= beg) return
 		var j = a.partition(beg, end)
 		a.quicksort2    (beg, j)
@@ -356,7 +360,8 @@ var a = {
 		return a.getDefaultValue(end, a.val.length)
 	},
 	assert: function(cond, msg) {
-		if (!cond) {
+        if (!cond) {
+            a.addText(msg)
 			console.error(msg)
 			alert(msg)
 			throw msg
@@ -385,7 +390,7 @@ var a = {
 				max_i = i
 			}
 		}
-		console.info("Ending max(%s,%s) -> %s",beg,end, a.valAsString(max_i))
+		//console.info("Ending max(%s,%s) -> %s",beg,end, a.valAsString(max_i))
 		return max_i	
 	},
 	isSorted: function(beg, end) {
@@ -404,6 +409,7 @@ var a = {
 		end = a.getDefaultEnd(end)
 		a.assert(a.isSorted(beg, end), "Array is not sorted in range (" + beg + "-" + end + ")")
 		for (var i=beg; i<end; i++) a.style[i] = 'sorted'
+        a.addText("Array is sorted [" + beg + "-" + end + "[. ")
 	},
 	isPartitioned: function(i, beg, end) {
 		return (i==beg) || (i==end) || !a.smaller(a.min(i,end), a.max(beg,i))		
@@ -414,7 +420,7 @@ var a = {
 		a.assert(a.isPartitioned(i, beg, end), "Array is not partitioned: [" + beg + "-" + a.valAsString(i) + "-" + end + "[")
 		a.style[beg] = a.style[end-1] = 'limit'
         if (i<end) a.style[i]='pivot'
-        a.text += "Array is partitioned [" + beg + "-" + i + "-" + end + "[. "
+        a.addText("Array is partitioned [" + beg + "-" + i + "-" + end + "[. ")
 	},
 	inRange: function(i, beg, end) {
 		beg = a.getDefaultBeg(beg)
@@ -429,6 +435,7 @@ var a = {
     assertIsHeap: function(end) {
         end = a.getDefaultEnd(end)
         a.assert(a.isHeap(), "Array is not a heap")
+        a.addText("Heap structure until position " + end + ". ")
     },
 }
 a.displayIndex()
