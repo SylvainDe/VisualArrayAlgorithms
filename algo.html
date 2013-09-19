@@ -1,7 +1,7 @@
 <html>
 <head>
 <style>
-td			{ border: 1px solid black; width:20px; }
+td			{ border: 1px solid black; }
 td.swapped	{ background-color:yellow; }
 td.index	{ background-color:pink; }
 td.sorted	{ background-color:gray; }
@@ -25,6 +25,7 @@ td.limit    { background-color:brown; }
 <button type="button" onClick="a.insertionSort()">Insertion Sort</button>
 <button type="button" onClick="a.selectionSort()">Selection Sort</button>
 <button type="button" onClick="a.quicksort()">Quicksort</button>
+<button type="button" onClick="a.heapSort()">Heap Sort</button>
 <br/>
 <button type="button" onClick="document.getElementById('searchValueRet').value=a.linearSearch(document.getElementById('searchValue').value)">Linear Search</button>
 <button type="button" onClick="document.getElementById('searchValueRet').value=a.binarySearch(document.getElementById('searchValue').value, -1)">Binary Search (first)</button>
@@ -49,32 +50,35 @@ var a = {
 	//val:    [25,3,6,3,52,12,76,65,34,29,6,8,24,21,23,5,6,3,2,2,4,62,10,30,32,12,98,7,1,1,2,3,4,7,8,34,52,12,76,65,34,29,42,9,2,6,7],
 	//val: 	[58, 22, 71, 28, 11, 14, 46, 56, 36, 12], 
 	//val:    [3,3,3,3,3,3,3,3,3,3,3,3,3,3],
-	style : [],
-	reset_style: function() {
+    style : [],
+    text: 'Loading the array',
+	reset_display_info: function() {
 		for (var i = 0; i < a.val.length; i++) {
 			a.style[i] = ''
-		}
+        }
+        a.text=''
 	},
 	displayIndex: function() {
 		a.cleanElement(document.getElementById('index'))
 		var row = document.getElementById('index').insertRow(0)
-		for (var i = 0; i < a.val.length; i++) {
+		for (var i = 0; i <= a.val.length; i++) {
 			var cell = row.insertCell(-1)
-			cell.appendChild(document.createTextNode(i))
+			cell.appendChild(document.createTextNode((i==a.val.length)?'More':i))
 			cell.className = 'index'
 		}
 	},
 	display: function() {
 		a.displayIndex()
 		var row = document.getElementById('logs').insertRow(0)
-		for (var i = 0; i < a.val.length; i++) {
+		for (var i = 0; i <= a.val.length; i++) {
 			var cell = row.insertCell(-1)
-			cell.appendChild(document.createTextNode(a.val[i]))
+			cell.appendChild(document.createTextNode((i==a.val.length)?a.text:a.val[i]))
 			cell.className = a.style[i]
 		}
-		a.reset_style()
+		a.reset_display_info()
 	},
-	clean: function() {
+    clean: function() {
+        a.text = 'Cleaned. '
 		a.cleanElement(document.getElementById('logs'))
 		a.cleanElement(document.getElementById('index'))
 		a.display()
@@ -85,7 +89,7 @@ var a = {
 	},
 	addElement: function(k) {
 		a.val.push(a.getDefaultValue(k,0))
-		a.reset_style()
+		a.reset_display_info()
 		a.display()
 	},
 	cmp: function(i,v) {
@@ -171,20 +175,24 @@ var a = {
 		var temp = a.val[i]
 		a.val[i] = a.val[j]
 		a.val[j] = temp
-		a.style[i] = a.style[j] = 'swapped'
+        a.style[i] = a.style[j] = 'swapped'
+        a.text += "Swapping " + a.valAsString(i) + " and " + a.valAsString(j) + ". "
 		a.display()
 	},
 	valAsString: function(i) {
 		return "a[" + i + "] = " + (a.inRange(i) ? a.val[i] : "Out of range")
 	},
-	selectionSort: function() {
+    selectionSort: function() {
+        a.text += "Starting in selectionSort(). "
 		for (var i = 0; i < a.val.length; i++) {
 			a.assertIsSorted(0,i)
 			a.assertIsPartitioned(i)
 			a.swap(i, a.min(i))
 			a.assertIsSorted(0,i+1)
-			a.assertIsPartitioned(i+1)
+            a.assertIsPartitioned(i+1)
+            a.display()
 		}
+        a.text += "selectionSort() completed. "
 		a.assertIsSorted()
 		a.display()
 	},
@@ -194,8 +202,11 @@ var a = {
 			for (var j = i; j>0 && a.smaller(j,j-1); j--) {
 				a.swap(j,j-1)
 			}
-			a.assertIsSorted(0,i+1)
+            a.assertIsSorted(0,i+1)
+            a.text += "insertionSort: elements from " + 0 + " to " + i + " are sorted. "
+            a.display()
 		}
+        a.text += "insertionSort() completed. "
 		a.assertIsSorted()
 		a.display()
 	},
@@ -211,7 +222,10 @@ var a = {
 			}
 			n = newn
 			a.assertIsSorted(n)
+            a.text += "bubbleSort: elements from " + n + " are sorted. "
+            a.display()
 		}
+        a.text += "bubbleSort() completed. "
 		a.assertIsSorted()
 		a.display()
 	},
@@ -250,12 +264,11 @@ var a = {
 		return j
 	},
 	quicksort: function() {
-		alert("I am not convinced with this implementation")
 		a.quicksort2(0, a.val.length)
 		a.display()
 	},
 	quicksort2: function(beg, end) {
-		console.log("Quicksort on %s-%s", beg, end)
+		a.text += "Quicksort started on " + beg + "-" + end + ". " 
 		if (end <= beg) return
 		var j = a.partition(beg, end)
 		a.quicksort2    (beg, j)
@@ -263,7 +276,58 @@ var a = {
 		a.quicksort2    (j+1, end)
 		a.assertIsSorted(j,   end)
 	},
-	mergeSort: function() {
+    heapParent: function(i) {
+        return Math.floor((i-1)/2)
+    },
+    heapLeftChild: function(i) {
+        return 2*i+1
+    },
+    heapSink: function(i, end) {
+        end = a.getDefaultEnd(end)
+        while (true) {
+            var bigChild = a.heapLeftChild(i)
+            if (bigChild >= end) break
+            if (bigChild+1 < end && a.smaller(bigChild, bigChild+1)) bigChild++
+            if (!a.smaller(i,bigChild)) break
+            a.swap(i, bigChild)
+            i = bigChild
+        }
+    },
+    heapSwim: function(i) {
+        while (true) {
+            var par = a.heapParent(i)
+            if (i>0 && a.smaller(par,i)) {
+                a.swap(par,i)
+                i = par
+            } else {
+                break
+            }
+        }
+    },
+    createHeap: function() {
+        for (var k = a.heapParent(a.val.length-1); k>=0; k--) {
+            a.heapSink(k)
+        }
+        a.assertIsHeap()
+    },
+    isHeap: function(end) {
+        for (var i = 1; i < end; i++) {
+            var par = a.heapParent(i)
+            if (a.smaller(par,i)) return false
+        }
+        return true;
+    },
+    heapSort: function() {
+        a.createHeap()
+        for (var n = a.val.length-1; n>0; n--) {
+            a.swap(0, n)
+            a.assertIsSorted(n)
+            a.heapSink(0, n)
+            a.assertIsHeap(n)
+        }
+        a.assertIsSorted()
+    },    
+    mergeSort: function() {
 		a.mergeSortWithLimits(0, a.val.length)
 	},
 	mergeSortWithLimits: function(beg, end) {
@@ -308,7 +372,7 @@ var a = {
 				min_i = i
 			}
 		}
-		//console.info("Ending min(%s,%s) -> %s",beg,end, a.valAsString(min_i))
+		console.info("Ending min(%s,%s) -> %s",beg,end, a.valAsString(min_i))
 		return min_i
 	},
 	max: function(beg, end) {
@@ -321,7 +385,7 @@ var a = {
 				max_i = i
 			}
 		}
-		//console.info("Ending max(%s,%s) -> %s",beg,end, a.valAsString(max_i))
+		console.info("Ending max(%s,%s) -> %s",beg,end, a.valAsString(max_i))
 		return max_i	
 	},
 	isSorted: function(beg, end) {
@@ -347,9 +411,10 @@ var a = {
 	assertIsPartitioned: function(i,beg,end) {
 		beg = a.getDefaultBeg(beg)
 		end = a.getDefaultEnd(end)
-		a.assert(a.isPartitioned(i, beg, end), "Array is not partitioned")
+		a.assert(a.isPartitioned(i, beg, end), "Array is not partitioned: [" + beg + "-" + a.valAsString(i) + "-" + end + "[")
 		a.style[beg] = a.style[end-1] = 'limit'
-		a.style[i]='pivot'
+        if (i<end) a.style[i]='pivot'
+        a.text += "Array is partitioned [" + beg + "-" + i + "-" + end + "[. "
 	},
 	inRange: function(i, beg, end) {
 		beg = a.getDefaultBeg(beg)
@@ -360,7 +425,11 @@ var a = {
 		beg = a.getDefaultBeg(beg)
 		end = a.getDefaultEnd(end)
 		a.assert(a.inRange(i, beg, end), "Value " + i + " is not in range [" + beg + "-" + end + "[")
-	}
+	},
+    assertIsHeap: function(end) {
+        end = a.getDefaultEnd(end)
+        a.assert(a.isHeap(), "Array is not a heap")
+    },
 }
 a.displayIndex()
 a.display()
