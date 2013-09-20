@@ -1,7 +1,7 @@
 <html>
 <head>
 <style>
-td			{ border: 1px solid black; }
+td			{ border: 1px solid black; white-space: nowrap; }
 td.swapped	{ background-color:yellow; }
 td.index	{ background-color:pink; }
 td.sorted	{ background-color:gray; }
@@ -126,13 +126,14 @@ var a = {
 		var max = a.val.length-1
         a.assertIsSorted(min, max+1)
 		while (min <= max)
-		{
+        {
+            a.assertIsSorted(min,max+1)
 			var range = max-min
 			var midf = min + (range / 2)
 			var mid = (occurence > 0) ? Math.ceil(midf) : Math.floor(midf)
 			var cmp = a.cmp(mid,k)
-            if      (cmp < 0) { min = mid+1; a.addText("Value must of on the right of " + a.valAsString(mid) + ". ") }
-            else if (cmp > 0) { max = mid-1; a.addText("Value must of on the left of "  + a.valAsString(mid) + ". ") }
+            if      (cmp < 0) { min = mid+1; a.addText("Value must be on the right of " + a.valAsString(mid) + ". ") }
+            else if (cmp > 0) { max = mid-1; a.addText("Value must be on the left of "  + a.valAsString(mid) + ". ") }
 			else if (occurence == 0 || min==max) return a.found(mid)
             else if (occurence < 0) { max = mid; a.addText("Value found at " + a.valAsString(mid) + " but might not be the first. ") } 
 			else                    { min = mid; a.addText("Value found at " + a.valAsString(mid) + " but might not be the last. ")  } 
@@ -322,14 +323,19 @@ var a = {
         return true;
     },
     heapSort: function() {
+        a.addText("Starting in heapSort(). ")
         a.createHeap()
+        a.addText("HeapSort : heap is created. ")
+        a.display()
         for (var n = a.val.length-1; n>0; n--) {
             a.swap(0, n)
             a.assertIsSorted(n)
             a.heapSink(0, n)
             a.assertIsHeap(n)
         }
+        a.addText("heapSort() completed. ")
         a.assertIsSorted()
+        a.display()
     },    
     mergeSort: function() {
 		a.mergeSortWithLimits(0, a.val.length)
