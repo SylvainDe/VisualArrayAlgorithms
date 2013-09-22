@@ -22,6 +22,7 @@ td.limit    { background-color:brown; }
 <button type="button" onClick="a.shuffle()">Shuffle</button>
 <br/>
 <button type="button" onClick="a.bubbleSort()">Bubble Sort</button>
+<button type="button" onClick="a.gnomeSort()">Gnome Sort</button>
 <button type="button" onClick="a.insertionSort()">Insertion Sort</button>
 <button type="button" onClick="a.selectionSort()">Selection Sort</button>
 <button type="button" onClick="a.quicksort()">Quicksort</button>
@@ -32,6 +33,7 @@ td.limit    { background-color:brown; }
 <button type="button" onClick="document.getElementById('searchValueRet').value=a.binarySearch(document.getElementById('searchValue').value, -1)">Binary Search (first)</button>
 <button type="button" onClick="document.getElementById('searchValueRet').value=a.binarySearch(document.getElementById('searchValue').value,  1)">Binary Search (last)</button>
 <button type="button" onClick="document.getElementById('searchValueRet').value=a.binarySearch(document.getElementById('searchValue').value,  0)">Binary Search (any)</button>
+<button type="button" onClick="document.getElementById('searchValueRet').value=a.interpolationSearch(document.getElementById('searchValue').value,  0)">Interpolation Search</button>
 <input type="text" id="searchValue" name="searchValue" value="0" size="2">
 <input type="text" id="searchValueRet" name="searchValueRet" value="0" size="2">
 <br/>
@@ -47,8 +49,8 @@ td.limit    { background-color:brown; }
 </table>
 <script>
 var a = {
-	val:	[23,11,32,40,25,83,47,12,62,14,54,51],
-	//val:    [25,3,6,3,52,12,76,65,34,29,6,8,24,21,23,5,6,3,2,2,4,62,10,30,32,12,98,7,1,1,2,3,4,7,8,34,52,12,76,65,34,29,42,9,2,6,7],
+	//val:	[23,11,32,40,25,83,47,12,62,14,54,51],
+	val:    [25,3,6,3,52,12,76,65,34,29,6,8,24,21,23,5,6,3,2,2,4,62,10,30,32,12,98,7,1,1,2,3,4,7,8,34,52,12,76,65,34,29,42,9,2,6,7],
 	//val: 	[58, 22, 71, 28, 11, 14, 46, 56, 36, 12], 
 	//val:    [3,3,3,3,3,3,3,3,3,3,3,3,3,3],
     style : [],
@@ -120,7 +122,27 @@ var a = {
 			if (a.cmp(i, k) == 0) return a.found(i)
 		}
 		return -1
-	},
+    },
+    interpolationSearch: function(k) {
+        var min = 0
+        var max = a.val.length-1
+        a.assertIsSorted(min, max+1)
+        while (true) {
+            a.assertIsSorted(min,max+1)
+			var range = max-min
+            var minv = a.val[min]
+            var maxv = a.val[max]
+            if (minv > k || maxv < k) return -1 
+            if (minv == maxv) return minv 
+            var mid = min + Math.floor(((k - minv)*(max-min))/(maxv-minv))
+            var cmp = a.cmp(mid,k)
+            if      (cmp < 0) { min = mid+1; a.addText("Value must be on the right of " + a.valAsString(mid) + ". ") }
+            else if (cmp > 0) { max = mid-1; a.addText("Value must be on the left of "  + a.valAsString(mid) + ". ") }
+            else return a.found(mid)
+			a.assert(max-min < range, "Range did not get smaller")
+            a.display()
+        }
+    },
 	binarySearch: function(k, occurence) {
 		occurence = a.getDefaultValue(occurence, 0)
 		var min = 0
@@ -340,6 +362,21 @@ var a = {
         a.assertIsSorted()
         a.display()
     },    
+    gnomeSort: function() {
+        var pos = 1
+        while (pos < a.val.length) {
+            if (a.smaller(pos,pos-1)) {
+                a.swap(pos,pos-1)
+                if (pos>1) pos-- 
+            } else {
+                pos++
+            }
+            a.assertIsSorted(0,pos)
+        }
+        a.addText("heapSort() completed. ")
+        a.assertIsSorted()
+        a.display()
+    },
     mergeSort: function() {
 		a.mergeSort2(0, a.val.length)
 	},
