@@ -25,6 +25,7 @@ td.limit    { background-color:brown; }
 <button type="button" onClick="a.insertionSort()">Insertion Sort</button>
 <button type="button" onClick="a.selectionSort()">Selection Sort</button>
 <button type="button" onClick="a.quicksort()">Quicksort</button>
+<button type="button" onClick="a.mergeSort()">Mergesort</button>
 <button type="button" onClick="a.heapSort()">Heap Sort</button>
 <br/>
 <button type="button" onClick="document.getElementById('searchValueRet').value=a.linearSearch(document.getElementById('searchValue').value)">Linear Search</button>
@@ -46,8 +47,8 @@ td.limit    { background-color:brown; }
 </table>
 <script>
 var a = {
-	//val:	[23,11,32,40,25,83,47,12,62,14,54,51],
-	val:    [25,3,6,3,52,12,76,65,34,29,6,8,24,21,23,5,6,3,2,2,4,62,10,30,32,12,98,7,1,1,2,3,4,7,8,34,52,12,76,65,34,29,42,9,2,6,7],
+	val:	[23,11,32,40,25,83,47,12,62,14,54,51],
+	//val:    [25,3,6,3,52,12,76,65,34,29,6,8,24,21,23,5,6,3,2,2,4,62,10,30,32,12,98,7,1,1,2,3,4,7,8,34,52,12,76,65,34,29,42,9,2,6,7],
 	//val: 	[58, 22, 71, 28, 11, 14, 46, 56, 36, 12], 
 	//val:    [3,3,3,3,3,3,3,3,3,3,3,3,3,3],
     style : [],
@@ -201,18 +202,20 @@ var a = {
 		a.assertIsSorted()
 		a.display()
 	},
-	insertionSort: function() {
-		for (var i = 0; i < a.val.length; i++) {
-			a.assertIsSorted(0,i)
-			for (var j = i; j>0 && a.smaller(j,j-1); j--) {
+    insertionSort: function(beg,end) {
+		beg = a.getDefaultBeg(beg)
+		end = a.getDefaultEnd(end)
+		for (var i = beg; i < end; i++) {
+			a.assertIsSorted(beg,i)
+			for (var j = i; j>beg && a.smaller(j,j-1); j--) {
 				a.swap(j,j-1)
 			}
-            a.assertIsSorted(0,i+1)
-            a.addText("insertionSort: elements from " + 0 + " to " + i + " are sorted. ")
+            a.assertIsSorted(beg,i+1)
+            a.addText("insertionSort: elements from " + beg + " to " + i + " are sorted. ")
             a.display()
 		}
         a.addText("insertionSort() completed. ")
-		a.assertIsSorted()
+		a.assertIsSorted(beg,end)
 		a.display()
 	},
 	bubbleSort: function() {
@@ -338,16 +341,33 @@ var a = {
         a.display()
     },    
     mergeSort: function() {
-		a.mergeSortWithLimits(0, a.val.length)
+		a.mergeSort2(0, a.val.length)
 	},
-	mergeSortWithLimits: function(beg, end) {
-		if (beg>=end) return
-		var mid = (beg+end)/2
-		
-		// TODO
+    mergeSort2: function(beg, end) {
+        a.addText("Starting in mergeSort(" + beg + "-" + end + ") .")
+        if (beg+1 < end) {
+            var mid = Math.floor((beg+end)/2)
+            a.mergeSort2(beg, mid)
+            a.mergeSort2(mid, end)
+            a.merge(beg,mid,end)
+        }
+        a.addText("mergeSort(" + beg + "-" + end +") completed. ")
+        a.assertIsSorted(beg,end)
+        a.display()
 	},
-	merge: function(lo, mid, hi) {
-		// TODO
+    merge: function(beg, mid, end) {
+        var i = beg
+        var j = mid
+        var temp = []
+        for (k=beg; k<end; k++) {
+            if (i >= mid)            { break; }
+            else if (j >= end)       { temp.push(a.val[i++]) }
+            else if (a.smaller(j,i)) { temp.push(a.val[j++]) }
+            else                     { temp.push(a.val[i++]) }
+        }
+        for (k=0; k<temp.length; k++) {
+            a.val[beg+k] = temp[k]
+        }
 	},
 	shuffle: function() {
 		for (var i = 0; i < a.val.length; i++) {
